@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { addItem } from './CartSlice'; // Ensure this matches your CartSlice file location
+import { useDispatch, useSelector } from 'react-redux'; // Added useSelector to read from store
+import { addItem } from './CartSlice';
 import './ProductList.css';
 import CartItem from './CartItem';
 
 function ProductList({ onHomeClick }) {
     const dispatch = useDispatch();
+    
+    // Access the Redux store to retrieve the total list of items currently in the cart
+    const cartItems = useSelector(state => state.cart.items);
+    
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); 
-
-    // State to track which products are added to the cart
     const [addedToCart, setAddedToCart] = useState({});
+
+    // Calculate total quantity of items to show on the cart icon badge
+    const calculateTotalQuantity = () => {
+        return cartItems ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0;
+    };
 
     const plantsArray = [
         {
@@ -262,7 +269,6 @@ function ProductList({ onHomeClick }) {
         setShowCart(false);
     };
 
-    // Add to Cart handler function
     const handleAddToCart = (plant) => {
         dispatch(addItem(plant));
         setAddedToCart((prevState) => ({
@@ -290,6 +296,7 @@ function ProductList({ onHomeClick }) {
                     <div> 
                         <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
                             <h1 className='cart'>
+                                <span className='cart_quantity_badge'>{calculateTotalQuantity()}</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68">
                                     <rect width="156" height="156" fill="none"></rect>
                                     <circle cx="80" cy="216" r="12"></circle>
