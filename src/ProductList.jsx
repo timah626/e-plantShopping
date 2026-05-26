@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import './ProductList.css'
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { addItem } from './CartSlice'; // Ensure this matches your CartSlice file location
+import './ProductList.css';
 import CartItem from './CartItem';
+
 function ProductList({ onHomeClick }) {
+    const dispatch = useDispatch();
     const [showCart, setShowCart] = useState(false);
-    const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
+    const [showPlants, setShowPlants] = useState(false); 
+
+    // State to track which products are added to the cart
+    const [addedToCart, setAddedToCart] = useState({});
 
     const plantsArray = [
         {
@@ -194,7 +201,7 @@ function ProductList({ onHomeClick }) {
                 {
                     name: "Cast Iron Plant",
                     image: "https://cdn.pixabay.com/photo/2017/02/16/18/04/cast-iron-plant-2072008_1280.jpg",
-                    description: "Hardy plant that tolerates low light and neglect.",
+                    description: "Hardy plant that treats low light and neglect.",
                     cost: "$20"
                 },
                 {
@@ -212,26 +219,27 @@ function ProductList({ onHomeClick }) {
             ]
         }
     ];
+
     const styleObj = {
         backgroundColor: '#4CAF50',
         color: '#fff!important',
         padding: '15px',
         display: 'flex',
         justifyContent: 'space-between',
-        alignIems: 'center',
+        alignItems: 'center',
         fontSize: '20px',
-    }
+    };
     const styleObjUl = {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '1100px',
-    }
+    };
     const styleA = {
         color: 'white',
         fontSize: '30px',
         textDecoration: 'none',
-    }
+    };
 
     const handleHomeClick = (e) => {
         e.preventDefault();
@@ -240,18 +248,29 @@ function ProductList({ onHomeClick }) {
 
     const handleCartClick = (e) => {
         e.preventDefault();
-        setShowCart(true); // Set showCart to true when cart icon is clicked
+        setShowCart(true);
     };
+    
     const handlePlantsClick = (e) => {
         e.preventDefault();
-        setShowPlants(true); // Set showAboutUs to true when "About Us" link is clicked
-        setShowCart(false); // Hide the cart when navigating to About Us
+        setShowPlants(true);
+        setShowCart(false);
     };
 
     const handleContinueShopping = (e) => {
         e.preventDefault();
         setShowCart(false);
     };
+
+    // Add to Cart handler function
+    const handleAddToCart = (plant) => {
+        dispatch(addItem(plant));
+        setAddedToCart((prevState) => ({
+            ...prevState,
+            [plant.name]: true
+        }));
+    };
+
     return (
         <div>
             <div className="navbar" style={styleObj}>
@@ -265,17 +284,52 @@ function ProductList({ onHomeClick }) {
                             </div>
                         </a>
                     </div>
-
                 </div>
                 <div style={styleObjUl}>
                     <div> <a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>Plants</a></div>
-                    <div> <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}><h1 className='cart'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68"><rect width="156" height="156" fill="none"></rect><circle cx="80" cy="216" r="12"></circle><circle cx="184" cy="216" r="12"></circle><path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="mainIconPathAttribute"></path></svg></h1></a></div>
+                    <div> 
+                        <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
+                            <h1 className='cart'>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68">
+                                    <rect width="156" height="156" fill="none"></rect>
+                                    <circle cx="80" cy="216" r="12"></circle>
+                                    <circle cx="184" cy="216" r="12"></circle>
+                                    <path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="mainIconPathAttribute"></path>
+                                </svg>
+                            </h1>
+                        </a>
+                    </div>
                 </div>
             </div>
+            
             {!showCart ? (
-                <div className="product-grid">
-
-
+                <div>
+                    {plantsArray.map((categoryGroup, catIdx) => (
+                        <div key={catIdx} className="category-section">
+                            <h2 className="category-title">{categoryGroup.category}</h2>
+                            <div className="product-grid">
+                                {categoryGroup.plants.map((plant, plantIdx) => (
+                                    <div key={plantIdx} className="product-card">
+                                        <img 
+                                            className="product-image" 
+                                            src={plant.image} 
+                                            alt={plant.name} 
+                                        />
+                                        <div className="product-name">{plant.name}</div>
+                                        <div className="product-description">{plant.description}</div>
+                                        <div className="product-cost">{plant.cost}</div>
+                                        <button 
+                                            className="product-button"
+                                            disabled={addedToCart[plant.name]}
+                                            onClick={() => handleAddToCart(plant)}
+                                        >
+                                            {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             ) : (
                 <CartItem onContinueShopping={handleContinueShopping} />
